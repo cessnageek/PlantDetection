@@ -1,3 +1,4 @@
+#Background filtering the photos
 import cv2
 import numpy as np
 
@@ -12,6 +13,7 @@ def printValues(event, x, y, flags, param):
 inputImage = cv2.imread('old_onerow.png');
 
 screen_res = 1920, 1080;
+x=3;
 
 width = screen_res[0] / inputImage.shape[1];
 height = screen_res[1] / inputImage.shape[0];
