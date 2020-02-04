@@ -10,7 +10,7 @@ def printValues(event, x, y, flags, param):
 		print(f"vals:{vals}")
 
 
-inputImage = cv2.imread('old_onerow.png');
+inputImage = cv2.imread('new_tworow.png');
 
 screen_res = 1920, 1080;
 x=3;
@@ -57,12 +57,18 @@ maskTotal = cv2.bitwise_not(maskTotal);
 cv2.imshow('Display', maskTotal);
 cv2.waitKey(0);
 
-kernelClose = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(10,10));
-opened = cv2.morphologyEx(maskTotal, cv2.MORPH_OPEN, kernelClose);
-cv2.imshow('Display', opened);
+#kernelClose = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(10,10));
+#opened = cv2.morphologyEx(maskTotal, cv2.MORPH_OPEN, kernelClose);
+#kernelErode = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (30, 30));
+kernelErode = cv2.getStructuringElement(cv2.MORPH_RECT, (40,5));
+eroded = cv2.morphologyEx(maskTotal, cv2.MORPH_ERODE, kernelErode);
+kernelDilate = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (20, 20));
+dilated = cv2.morphologyEx(eroded, cv2.MORPH_DILATE, kernelDilate);
+cv2.imshow('Display', dilated);
+#cv2.imshow('Display', opened);
 cv2.waitKey(0);
 
-combined = cv2.bitwise_and(inputImage, inputImage, mask = opened);
+combined = cv2.bitwise_and(inputImage, inputImage, mask = dilated);
 cv2.imshow('Display', combined);
 cv2.waitKey(0);
 
