@@ -1,6 +1,8 @@
 import cv2
 import numpy as np
+import timeit
 
+global combined
 def printValues(event, x, y, flags, param):
 	global mouseX, mouseY;
 	if event == cv2.EVENT_LBUTTONDBLCLK:
@@ -8,28 +10,43 @@ def printValues(event, x, y, flags, param):
 		vals = hsv[y,x];
 		print(f"vals:{vals}")
 
+testCode = '''
+def imagePipeline():
+	hsv = cv2.cvtColor(inputImage, cv2.COLOR_BGR2HSV);
+	maskPurple = cv2.inRange(hsv, lowerPurple, upperPurple);
+	maskRed = cv2.inRange(hsv, lowerRed, upperRed);
+	maskLightPurple = cv2.inRange(hsv, lowerLightPurple, upperLightPurple);
+	maskTotal = cv2.bitwise_or(maskPurple, maskRed);
+	maskTotal = cv2.bitwise_or(maskTotal, maskLightPurple);
+	maskTotal = cv2.bitwise_not(maskTotal);
+	opened = cv2.morphologyEx(maskTotal, cv2.MORPH_OPEN, kernelOpen);
+	combined = cv2.bitwise_and(inputImage, inputImage, mask = opened);
+	return combined
+	'''
+
+
 
 inputImage = cv2.imread('old_tworow.png');
 
 screen_res = 1920, 1080;
 
-width = screen_res[0] / inputImage.shape[1];
-height = screen_res[1] / inputImage.shape[0];
+#width = screen_res[0] / inputImage.shape[1];
+#height = screen_res[1] / inputImage.shape[0];
 
-scale = min(width, height);
+#scale = min(width, height);
 
-newWidth = int(inputImage.shape[1] * scale);
-newHeight = int(inputImage.shape[0] * scale);
+#newWidth = int(inputImage.shape[1] * scale);
+#newHeight = int(inputImage.shape[0] * scale);
 
-cv2.namedWindow('Display', cv2.WINDOW_NORMAL);
+#cv2.namedWindow('Display', cv2.WINDOW_NORMAL);
 
-cv2.resizeWindow('Display', newWidth, newHeight);
+#cv2.resizeWindow('Display', newWidth, newHeight);
 
-cv2.imshow('Display', inputImage);
-cv2.waitKey(0);
+#cv2.imshow('Display', inputImage);
+#cv2.waitKey(0);
 
-hsv = cv2.cvtColor(inputImage, cv2.COLOR_BGR2HSV);
-cv2.imshow('Display', hsv);
+# = cv2.cvtColor(inputImage, cv2.COLOR_BGR2HSV);
+#cv2.imshow('Display', hsv);
 
 lowerPurple = np.array([75, 0, 90]);
 #upperPurple = np.array([200, 120, 256]);
@@ -43,27 +60,28 @@ upperLightPurple = np.array([115, 125, 230]);
 
 cv2.setMouseCallback('Display', printValues);
 
-cv2.imshow('Display', hsv);
-cv2.waitKey(0);
+#cv2.imshow('Display', hsv);
+#cv2.waitKey(0);
 
-maskPurple = cv2.inRange(hsv, lowerPurple, upperPurple);
-maskRed = cv2.inRange(hsv, lowerRed, upperRed);
-maskLightPurple = cv2.inRange(hsv, lowerLightPurple, upperLightPurple);
-maskTotal = cv2.bitwise_or(maskPurple, maskRed);
-maskTotal = cv2.bitwise_or(maskTotal, maskLightPurple);
-maskTotal = cv2.bitwise_not(maskTotal);
-cv2.imshow('Display', maskTotal);
-cv2.waitKey(0);
+#maskPurple = cv2.inRange(hsv, lowerPurple, upperPurple);
+#maskRed = cv2.inRange(hsv, lowerRed, upperRed);
+#maskLightPurple = cv2.inRange(hsv, lowerLightPurple, upperLightPurple);
+#maskTotal = cv2.bitwise_or(maskPurple, maskRed);
+#maskTotal = cv2.bitwise_or(maskTotal, maskLightPurple);
+#maskTotal = cv2.bitwise_not(maskTotal);
+#cv2.imshow('Display', maskTotal);
+#cv2.waitKey(0);
 
 kernelOpen = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(10,10));
-opened = cv2.morphologyEx(maskTotal, cv2.MORPH_OPEN, kernelOpen);
-cv2.imshow('Display', opened);
-cv2.waitKey(0);
+#opened = cv2.morphologyEx(maskTotal, cv2.MORPH_OPEN, kernelOpen);
+#cv2.imshow('Display', opened);
+#cv2.waitKey(0);
 
-combined = cv2.bitwise_and(inputImage, inputImage, mask = opened);
-cv2.imshow('Display', combined);
-cv2.waitKey(0);
+#combined = cv2.bitwise_and(inputImage, inputImage, mask = opened);
+print(np.mean(timeit.repeat(stmt=testCode, repeat=50)));
+#cv2.imshow('Display', imagePipeline());
+#cv2.waitKey(0);
 
-cv2.destroyAllWindows();
+#cv2.destroyAllWindows();
 
 
