@@ -9,7 +9,7 @@ def printValues(event, x, y, flags, param):
 		print(f"vals:{vals}")
 
 
-capSource = cv2.VideoCapture('GX030003.MP4');
+capSource = cv2.VideoCapture('GX040003.MP4');
 ret, inputImage = capSource.read();
 screen_res = 1920, 1080;
 
@@ -27,6 +27,16 @@ cv2.resizeWindow('Display', newWidth, newHeight);
 #capSource.set(cv2.CAP_PROP_FPS, 30);
 print(capSource.get(cv2.CAP_PROP_FRAME_COUNT));
 capSource.set(cv2.CAP_PROP_BUFFERSIZE, 5);
+
+fourcc = cv2.VideoWriter_fourcc(*"MJPG");
+path = 'C:\\Users\\cessn\\Documents\\PlantDetection\\outputVid40003.avi';
+
+outWidth = int(capSource.get(cv2.CAP_PROP_FRAME_WIDTH));
+outHeight = int(capSource.get(cv2.CAP_PROP_FRAME_HEIGHT));
+
+outputVideo = cv2.VideoWriter(path, fourcc, 30, (outWidth, outHeight), True);
+
+
 count = 0;
 while(capSource.isOpened()):
 	ret, inputImage = capSource.read();
@@ -35,7 +45,6 @@ while(capSource.isOpened()):
 		hsv = cv2.cvtColor(inputImage, cv2.COLOR_BGR2HSV);
 
 		lowerPurple = np.array([75, 0, 90]);
-		#upperPurple = np.array([200, 120, 256]);
 		upperPurple = np.array([200, 50, 256]);
 
 		lowerRed = np.array([0, 0, 140]);
@@ -58,10 +67,13 @@ while(capSource.isOpened()):
 		cv2.imshow('Display', combined);
 		print(count);
 		count = count + 1;
-	if cv2.waitKey(2) == 'q':
+
+		outputVideo.write(combined);
+	if (cv2.waitKey(2) & 0XFF) == ord('q'):
 		break;
 
 cv2.destroyAllWindows();
 capSource.release();
+outputVideo.release();
 
 
