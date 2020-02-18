@@ -1,5 +1,11 @@
 import cv2
 import numpy as np
+from imutils.video import FPS
+from VideoGet import VideoGet
+from VideoWrite import VideoWrite
+#from threading import threading
+#import sys
+#from queue import Queue
 
 def printValues(event, x, y, flags, param):
 	global mouseX, mouseY;
@@ -9,8 +15,12 @@ def printValues(event, x, y, flags, param):
 		print(f"vals:{vals}")
 
 
-capSource = cv2.VideoCapture('GX040003.MP4');
-ret, inputImage = capSource.read();
+#capSource = cv2.VideoCapture('GX040003.MP4');
+#ret, inputImage = capSource.read();
+
+capSource = VideoGet('GX030003.MP4').start();
+inputImage = capSource.frame;
+
 screen_res = 1920, 1080;
 
 width = screen_res[0] / inputImage.shape[1];
@@ -25,23 +35,32 @@ cv2.namedWindow('Display', cv2.WINDOW_NORMAL);
 cv2.resizeWindow('Display', newWidth, newHeight);
 
 #capSource.set(cv2.CAP_PROP_FPS, 30);
-print(capSource.get(cv2.CAP_PROP_FRAME_COUNT));
-capSource.set(cv2.CAP_PROP_BUFFERSIZE, 5);
+#print(capSource.get(cv2.CAP_PROP_FRAME_COUNT));
+#capSource.set(cv2.CAP_PROP_BUFFERSIZE, 5);
 
 fourcc = cv2.VideoWriter_fourcc(*"MJPG");
 path = 'C:\\Users\\cessn\\Documents\\PlantDetection\\outputVid40003.avi';
 
-outWidth = int(capSource.get(cv2.CAP_PROP_FRAME_WIDTH));
-outHeight = int(capSource.get(cv2.CAP_PROP_FRAME_HEIGHT));
+#outWidth = int(capSource.get(cv2.CAP_PROP_FRAME_WIDTH));
+#outHeight = int(capSource.get(cv2.CAP_PROP_FRAME_HEIGHT));
+outWidth = capSource.width;
+outHeight = capSource.height;
 
-outputVideo = cv2.VideoWriter(path, fourcc, 30, (outWidth, outHeight), True);
+combined = inputImage;
+
+outputVideo = VideoWrite(fourcc, path, outWidth, outHeight, combined);
+
+#outputVideo = cv2.VideoWriter(path, fourcc, 30, (outWidth, outHeight), True);
 
 
 count = 0;
-while(capSource.isOpened()):
-	ret, inputImage = capSource.read();
+fps = FPS().start();
 
-	if ret:
+while(capSource.isOpened):
+	#ret, inputImage = capSource.read();
+	inputImage = capSource.frame;
+
+	if capSource.grabbed:
 		hsv = cv2.cvtColor(inputImage, cv2.COLOR_BGR2HSV);
 
 		lowerPurple = np.array([75, 0, 90]);
@@ -67,13 +86,21 @@ while(capSource.isOpened()):
 		cv2.imshow('Display', combined);
 		print(count);
 		count = count + 1;
+		fps.update();
 
-		outputVideo.write(combined);
-	if (cv2.waitKey(2) & 0XFF) == ord('q'):
+		#outputVideo.write(combined);
+		outputVideo.frame = combined;
+
+	if (cv2.waitKey(2) & 0XFF) == ord('q') or capSource.stopped:
+		capSource.stop();
+		outputVideo.stop();
 		break;
+fps.stop()
+print("Elapsed time: {:.2f}".format(fps.elapsed()));
+print("Approx FPS: {:.2f}".format(fps.fps()));
 
 cv2.destroyAllWindows();
-capSource.release();
-outputVideo.release();
+#capSource.release();
+#outputVideo.release();
 
 
